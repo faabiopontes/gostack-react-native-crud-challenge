@@ -59,7 +59,13 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
-      // Load Foods from API
+      const response = await api.get('/foods', {
+        params: {
+          category_like: 1,
+          name_like: searchValue,
+        },
+      });
+      setFoods(response.data);
     }
 
     loadFoods();
@@ -67,14 +73,15 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     async function loadCategories(): Promise<void> {
-      // Load categories from API
+      const response = await api.get('/categories');
+      setCategories(response.data);
     }
 
     loadCategories();
   }, []);
 
   function handleSelectCategory(id: number): void {
-    // Select / deselect category
+    setSelectedCategory(id);
   }
 
   return (
@@ -105,19 +112,19 @@ const Dashboard: React.FC = () => {
             horizontal
             showsHorizontalScrollIndicator={false}
           >
-            {categories.map(category => (
+            {categories.map(({ id, image_url, title }: Category) => (
               <CategoryItem
-                key={category.id}
-                isSelected={category.id === selectedCategory}
-                onPress={() => handleSelectCategory(category.id)}
+                key={id}
+                isSelected={id === selectedCategory}
+                onPress={() => handleSelectCategory(id)}
                 activeOpacity={0.6}
-                testID={`category-${category.id}`}
+                testID={`category-${id}`}
               >
                 <Image
                   style={{ width: 56, height: 56 }}
-                  source={{ uri: category.image_url }}
+                  source={{ uri: image_url }}
                 />
-                <CategoryItemTitle>{category.title}</CategoryItemTitle>
+                <CategoryItemTitle>{title}</CategoryItemTitle>
               </CategoryItem>
             ))}
           </CategorySlider>
@@ -125,26 +132,34 @@ const Dashboard: React.FC = () => {
         <FoodsContainer>
           <Title>Pratos</Title>
           <FoodList>
-            {foods.map(food => (
-              <Food
-                key={food.id}
-                onPress={() => handleNavigate(food.id)}
-                activeOpacity={0.6}
-                testID={`food-${food.id}`}
-              >
-                <FoodImageContainer>
-                  <Image
-                    style={{ width: 88, height: 88 }}
-                    source={{ uri: food.thumbnail_url }}
-                  />
-                </FoodImageContainer>
-                <FoodContent>
-                  <FoodTitle>{food.name}</FoodTitle>
-                  <FoodDescription>{food.description}</FoodDescription>
-                  <FoodPricing>{food.formattedPrice}</FoodPricing>
-                </FoodContent>
-              </Food>
-            ))}
+            {foods.map(
+              ({
+                id,
+                name,
+                thumbnail_url,
+                description,
+                formattedPrice,
+              }: Food) => (
+                <Food
+                  key={id}
+                  onPress={() => handleNavigate(id)}
+                  activeOpacity={0.6}
+                  testID={`food-${id}`}
+                >
+                  <FoodImageContainer>
+                    <Image
+                      style={{ width: 88, height: 88 }}
+                      source={{ uri: thumbnail_url }}
+                    />
+                  </FoodImageContainer>
+                  <FoodContent>
+                    <FoodTitle>{name}</FoodTitle>
+                    <FoodDescription>{description}</FoodDescription>
+                    <FoodPricing>{formattedPrice}</FoodPricing>
+                  </FoodContent>
+                </Food>
+              ),
+            )}
           </FoodList>
         </FoodsContainer>
       </ScrollView>
